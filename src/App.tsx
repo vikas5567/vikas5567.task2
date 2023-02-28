@@ -6,8 +6,9 @@ import './App.css';
 /**
  * State declaration for <App />
  */
-interface IState {
+interface IState{
   data: ServerRespond[],
+  showGraph: boolean,
 }
 
 /**
@@ -15,32 +16,49 @@ interface IState {
  * It renders title, button and Graph react element.
  */
 class App extends Component<{}, IState> {
-  constructor(props: {}) {
+  constructor(props: {}){
     super(props);
-
-    this.state = {
-      // data saves the server responds.
-      // We use this state to parse data down to the child element (Graph) as element property
+    
+    this.state={
       data: [],
+      showGraph: false.
     };
   }
+}
 
   /**
    * Render Graph react component with state.data parse as property data
    */
-  renderGraph() {
-    return (<Graph data={this.state.data}/>)
+  renderGraph(){
+    if(this.state.showGraph){
+      return(<Graph data={this.state.data}/>)
+    }
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
-  getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+  // getDataFromServer() {
+  //   DataStreamer.getData((serverResponds: ServerRespond[]) => {
+  //     // Update the state by creating a new array of data that consists of
+  //     // Previous data in the state and the new data from server
+  //     this.setState({ data: [...this.state.data, ...serverResponds] });
+  //   });
+  // }
+  getDataFromServer(){
+    let x=0;
+    const interval=setInterval(()=>{
+      DataStreamer.getData((ServerResponds: ServerRespond[])=> {
+        this.setState({
+          data:ServerResponds,
+          showGraph: true,
+        });
+      });
+      x++;
+      if(x>1000){
+        clearInterval(interval);
+      }
+    },100);
   }
 
   /**
