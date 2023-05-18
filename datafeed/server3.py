@@ -256,14 +256,53 @@ ops = {
 class App(object):
     """ The trading game server application. """
 
-    def __init__(self):
-        self._book_1 = dict()
-        self._book_2 = dict()
-        self._data_1 = order_book(read_csv(), self._book_1, 'ABC')
-        self._data_2 = order_book(read_csv(), self._book_2, 'DEF')
-        self._rt_start = datetime.now()
-        self._sim_start, _, _ = next(self._data_1)
-        self.read_10_first_lines()
+    class App:
+        # Error: Traceback (most recent call last):
+        # File "C:\Users\hyatt\PycharmProjects\forage-jpmc-swe-task-2\datafeed\server3.py", line 342, in <module>
+        #     run(App())
+        #         ^^^^^
+        # File "C:\Users\hyatt\PycharmProjects\forage-jpmc-swe-task-2\datafeed\server3.py", line 265, in __init__
+        #     self._sim_start, _, _ = next(self._data_1)
+        #                             ^^^^^^^^^^^^^^^^^^
+        # StopIteration
+
+        def __init__(self):
+            self._book_1 = dict()
+            self._book_2 = dict()
+            self._data_1 = order_book(read_csv(), self._book_1, 'ABC')
+            self._data_2 = order_book(read_csv(), self._book_2, 'DEF')
+            self._rt_start = datetime.now()
+            self._sim_start = None
+            self.read_10_first_lines()
+
+        @property
+        def _current_book_1(self):
+            for t, bids, asks in self._data_1:
+                if REALTIME:
+                    while t > self._sim_start + (datetime.now() - self._rt_start):
+                        yield t, bids, asks
+                else:
+                    yield t, bids, asks
+
+        @property
+        def _current_book_2(self):
+            for t, bids, asks in self._data_2:
+                if REALTIME:
+                    while t > self._sim_start + (datetime.now() - self._rt_start):
+                        yield t, bids, asks
+                else:
+                    yield t, bids, asks
+
+        def read_10_first_lines(self):
+            for _ in range(10):
+                try:
+                    self._sim_start, _, _ = next(self._data_1)
+                    next(self._data_2)
+                except StopIteration:
+                    print("Insufficient data for initialization")
+                    raise
+
+        # Rest of the class implementation...
 
     @property
     def _current_book_1(self):
