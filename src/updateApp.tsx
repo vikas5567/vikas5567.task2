@@ -7,7 +7,8 @@ import './App.css';
  * State declaration for <App />
  */
 interface IState {
-  data: ServerRespond[],
+  data: ServerRespond[];
+  showGraph: boolean;
 }
 
 /**
@@ -16,32 +17,40 @@ interface IState {
  */
 class App extends Component<{}, IState> {
   constructor(props: {}) {
-    super(props);
+  super(props);
+  this.state = {
+    data: [],
+    showGraph: false,
+  };
+}
 
-    this.state = {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
-      data: [],
-    };
-  }
+     
 
   /**
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+  const { showGraph, data } = this.state;
+  if (showGraph) {
+    return <Graph data={data} />;
   }
+  return null; // Optional: Return null if showGraph is false
+}
+
 
   /**
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
+  setInterval(() => {
     DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
       this.setState({ data: [...this.state.data, ...serverResponds] });
     });
-  }
+  }, 1000); // Adjust the interval as per your requirement
+}
+
 
   /**
    * Render the App react component
