@@ -176,7 +176,7 @@ class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
     allow_reuse_address = True
 
     def shutdown(self):
-        """ Override MRO to shutdown properly. """
+        """ Override MRO to shut down properly. """
         self.socket.close()
         http.server.HTTPServer.shutdown(self)
 
