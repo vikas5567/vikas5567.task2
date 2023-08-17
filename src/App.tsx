@@ -16,6 +16,11 @@ interface IState {
  * It renders title, button and Graph react element.
  */
 class App extends Component<{}, IState> {
+  set setState(value: ({data: [, , state, , data, ...]}: {
+    data: readonly [any, any, any, any, any, ...any]
+  }) => void) {
+    this._setState = value;
+  }
   set this(value) {
     this._this = value;
   }
@@ -43,10 +48,11 @@ class App extends Component<{}, IState> {
   /**
    * Get new data from server and update the state with the new data
    */
-  getDataFromServer() {
+  getDataFromServer = () => {
     let x = 0
     const interval = setInterval (() => {
       DataStreamer.getData((serverResponds: ServerRespond[]) => {
+        // @ts-ignore
         this.setState({
           data: serverResponds,
           showGraph: true,
@@ -57,10 +63,10 @@ class App extends Component<{}, IState> {
         clearInterval(interval);
       }
     }, 100);
-  }
+  };
       // Update the state by creating a new array of data that consists of
       // Previous data in the state and the new data from server
-  this.setState = ({ data: [...this.state.data, ...serverResponds] }) => {
+   this.setState = ({ data: [...this.state.data, ...serverResponds] }) => {
   };
 
 
