@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>App.tsx</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6a8759;}
+.s3 { color: #629755; font-style: italic;}
+.s4 { color: #808080;}
+.s5 { color: #e8bf6a;}
+.s6 { color: #bababa;}
+.s7 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+App.tsx</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">React</span><span class="s0">, </span><span class="s1">{ Component } from </span><span class="s2">'react'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">DataStreamer</span><span class="s0">, </span><span class="s1">{ ServerRespond } from </span><span class="s2">'./DataStreamer'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s1">Graph from </span><span class="s2">'./Graph'</span><span class="s0">;</span>
+<span class="s0">import </span><span class="s2">'./App.css'</span><span class="s0">;</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* State declaration for &lt;App /&gt;</span>
+ <span class="s3">*/</span>
+<span class="s0">interface </span><span class="s1">IState {</span>
+  <span class="s1">data: ServerRespond[]</span><span class="s0">,</span>
+  <span class="s1">showGraph: boolean</span><span class="s0">,</span>
+<span class="s1">}</span>
+
+<span class="s3">/**</span>
+ <span class="s3">* The parent element of the react app.</span>
+ <span class="s3">* It renders title, button and Graph react element.</span>
+ <span class="s3">*/</span>
+<span class="s0">class </span><span class="s1">App </span><span class="s0">extends </span><span class="s1">Component&lt;{}</span><span class="s0">, </span><span class="s1">IState&gt; {</span>
+  <span class="s1">set </span><span class="s0">this</span><span class="s1">(value) {</span>
+    <span class="s0">this</span><span class="s1">._this = value</span><span class="s0">;</span>
+  <span class="s1">}</span>
+  <span class="s1">constructor(props: {}) {</span>
+    <span class="s0">super</span><span class="s1">(props)</span><span class="s0">;</span>
+
+    <span class="s0">this</span><span class="s1">.state = {</span>
+      <span class="s4">// data saves the server responds.</span>
+      <span class="s4">// We use this state to parse data down to the child element (Graph) as element property</span>
+      <span class="s1">data: []</span><span class="s0">,</span>
+      <span class="s1">showGraph: </span><span class="s0">false,</span>
+    <span class="s1">}</span><span class="s0">;</span>
+  <span class="s1">}</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Render Graph react component with state.data parse as property data</span>
+   <span class="s3">*/</span>
+  <span class="s1">renderGraph() {</span>
+    <span class="s0">if </span><span class="s1">(</span><span class="s0">this</span><span class="s1">.state.showGraph) {</span>
+      <span class="s0">return </span><span class="s1">(</span><span class="s5">&lt;Graph </span><span class="s6">data</span><span class="s2">=</span><span class="s1">{</span><span class="s0">this</span><span class="s1">.state.data}</span><span class="s5">/&gt;</span><span class="s1">)</span>
+    <span class="s1">}</span>
+  <span class="s1">}</span>
+
+
+  <span class="s3">/**</span>
+   <span class="s3">* Get new data from server and update the state with the new data</span>
+   <span class="s3">*/</span>
+  <span class="s1">getDataFromServer() {</span>
+    <span class="s0">let </span><span class="s1">x = </span><span class="s7">0</span>
+    <span class="s0">const </span><span class="s1">interval = setInterval (() =&gt; {</span>
+      <span class="s1">DataStreamer.getData((serverResponds: ServerRespond[]) =&gt; {</span>
+        <span class="s0">this</span><span class="s1">.setState({</span>
+          <span class="s1">data: serverResponds</span><span class="s0">,</span>
+          <span class="s1">showGraph: </span><span class="s0">true,</span>
+        <span class="s1">})</span><span class="s0">;</span>
+      <span class="s1">})</span><span class="s0">;</span>
+      <span class="s1">x++</span><span class="s0">;</span>
+      <span class="s0">if </span><span class="s1">(x &gt; </span><span class="s7">1000</span><span class="s1">) {</span>
+        <span class="s1">clearInterval(interval)</span><span class="s0">;</span>
+      <span class="s1">}</span>
+    <span class="s1">}</span><span class="s0">, </span><span class="s7">100</span><span class="s1">)</span><span class="s0">;</span>
+  <span class="s1">}</span>
+      <span class="s4">// Update the state by creating a new array of data that consists of</span>
+      <span class="s4">// Previous data in the state and the new data from server</span>
+      <span class="s0">private </span><span class="s1">_this.setState({ data: [</span><span class="s0">this</span><span class="s1">.state.data</span><span class="s0">, </span><span class="s1">...serverResponds] })</span><span class="s0">;</span>
+    <span class="s1">})</span><span class="s0">;</span>
+  <span class="s1">}</span>
+
+  <span class="s3">/**</span>
+   <span class="s3">* Render the App react component</span>
+   <span class="s3">*/</span>
+  <span class="s1">render() {</span>
+    <span class="s0">return </span><span class="s1">(</span>
+      <span class="s5">&lt;div </span><span class="s6">className</span><span class="s2">=&quot;App&quot;</span><span class="s5">&gt;</span>
+        <span class="s5">&lt;header </span><span class="s6">className</span><span class="s2">=&quot;App-header&quot;</span><span class="s5">&gt;</span>
+          <span class="s1">Bank &amp; Merge Co Task 2</span>
+        <span class="s5">&lt;/header&gt;</span>
+        <span class="s5">&lt;div </span><span class="s6">className</span><span class="s2">=&quot;App-content&quot;</span><span class="s5">&gt;</span>
+          <span class="s5">&lt;button </span><span class="s6">className</span><span class="s2">=&quot;btn btn-primary Stream-button&quot;</span>
+            <span class="s4">// when button is click, our react app tries to request</span>
+            <span class="s4">// new data from the server.</span>
+            <span class="s4">// As part of your task, update the getDataFromServer() function</span>
+            <span class="s4">// to keep requesting the data every 100ms until the app is closed</span>
+            <span class="s4">// or the server does not return anymore data.</span>
+            <span class="s6">onClick</span><span class="s2">=</span><span class="s1">{() =&gt; {</span><span class="s0">this</span><span class="s1">.getDataFromServer()}}</span><span class="s5">&gt;</span>
+            <span class="s1">Start Streaming Data</span>
+          <span class="s5">&lt;/button&gt;</span>
+          <span class="s5">&lt;div </span><span class="s6">className</span><span class="s2">=&quot;Graph&quot;</span><span class="s5">&gt;</span>
+            <span class="s1">{</span><span class="s0">this</span><span class="s1">.renderGraph()}</span>
+          <span class="s5">&lt;/div&gt;</span>
+        <span class="s5">&lt;/div&gt;</span>
+      <span class="s5">&lt;/div&gt;</span>
+    <span class="s1">)</span>
+  <span class="s1">}</span>
+<span class="s1">}</span>
+
+<span class="s0">export default </span><span class="s1">App</span><span class="s0">;</span>
+</pre>
+</body>
+</html>
