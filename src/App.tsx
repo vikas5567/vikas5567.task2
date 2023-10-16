@@ -8,6 +8,7 @@ import './App.css';
  */
 interface IState {
   data: ServerRespond[],
+  showGraph: boolean, // add a new state variable to keep track of whether the graph should be shown
 }
 
 /**
@@ -22,6 +23,7 @@ class App extends Component<{}, IState> {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+      showGraph: false, // initialize the state variable to false
     };
   }
 
@@ -29,18 +31,29 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    // if showGraph is true, then render the graph
+    if (this.state.showGraph) {
+      return (<Graph data={this.state.data}/>)
+    }
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      // Update the state by creating a new array of data that consists of
-      // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
-    });
+  let x = 0; // initialize a variable to keep track of the number of times getDataFromServer() is called
+    const interval = setInterval(() => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
+        this.setState({
+          data: serverResponds,
+          showGraph: true, // set showGraph to true so that the graph is rendered
+        });
+      });
+      x++; // increment x by 1
+      if (x > 1000) { // if x is greater than 1000, then clear the interval
+        clearInterval(interval);
+      }
+    }, 100); // call getDataFromServer() every 100ms
   }
 
   /**
