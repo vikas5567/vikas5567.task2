@@ -216,8 +216,7 @@ def get(req_handler, routes):
                 data = json.dumps(handler(routes, params)) + '\n'
                 req_handler.wfile.write(bytes(data, encoding='utf-8'))
                 return
-
-
+            
 def run(routes, host='0.0.0.0', port=8080):
     """ Runs a class as a server whose methods have been decorated with
         @route.
