@@ -1,0 +1,20 @@
+From 4e4de0807c651c47e17ccddacf4f182d0e6ec0ea Mon Sep 17 00:00:00 2001
+From: Lucas Aramendy <yataylucas@gmail.com>
+Date: Tue, 14 Nov 2023 14:08:14 -0300
+Subject: [PATCH] =?UTF-8?q?A=C3=B1adir=20todos=20los=20cambios=20en=20un?=
+ =?UTF-8?q?=20solo=20parche?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ all_changes.patch | 0
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 all_changes.patch
+
+diff --git a/all_changes.patch b/all_changes.patch
+new file mode 100644
+index 0000000..e69de29
+-- 
+2.42.0.windows.2
+
