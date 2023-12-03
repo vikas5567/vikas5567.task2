@@ -14,7 +14,7 @@ interface IProps {
  * Perspective library adds load to HTMLElement prototype.
  * This interface acts as a wrapper for Typescript compiler.
  */
-interface PerspectiveViewerElement {
+interface PerspectiveViewerElement extends HTMLElement{
   load: (table: Table) => void,
 }
 
@@ -49,25 +49,34 @@ class Graph extends Component<IProps, {}> {
 
       // Add more Perspective configurations here.
       elem.load(this.table);
-    }
+      elem.setAttribute("view", "y_line");
+      elem.setAttribute("column-pivots", '["stock"]');
+      elem.setAttribute("row_pivots", '["timestamp"]');
+      elem.setAttribute("columns", '["top_ask_price"]');
+      elem.setAttribute("aggregates",
+          '{"stock":"distinct_count", "top_ask_price":"avg", "top_bid_price":"avg", "timestamp":"distinct_count"}'
+      );
+  }
   }
 
   componentDidUpdate() {
     // Everytime the data props is updated, insert the data into Perspective table
     if (this.table) {
-      // As part of the task, you need to fix the way we update the data props to
-      // avoid inserting duplicated entries into Perspective table again.
-      this.table.update(this.props.data.map((el: any) => {
-        // Format the data from ServerRespond to the schema
-        return {
-          stock: el.stock,
-          top_ask_price: el.top_ask && el.top_ask.price || 0,
-          top_bid_price: el.top_bid && el.top_bid.price || 0,
-          timestamp: el.timestamp,
+        // As part of the task, you need to fix the way we update the data props to
+        // avoid inserting duplicated entries into Perspective table again.
+        this.table.update(this.props.data.map((el: any) => {
+            // Format the data from ServerRespond to the schema
+            return {
+                stock: el.stock,
+                top_ask_price: el.top_ask && el.top_ask.price || 0,
+                top_bid_price: el.top_bid && el.top_bid.price || 0,
+                timestamp: el.timestamp,
         };
       }));
     }
   }
 }
+
+
 
 export default Graph;
