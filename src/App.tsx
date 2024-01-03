@@ -41,23 +41,25 @@ class App extends Component<{}, IState> {
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
-      let x=0;
-      const interval = setInterval(()=>{
-        DataStreamer.getData((serverResponds: ServerRespond[])=>{
-          this.setState({
-            data : serverResponds,
-            showGraph: true,
-          });
+    const interval = setInterval(() => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
+        // Filter out duplicates before updating the state
+        const uniqueData = serverResponds.filter((data, index, self) =>
+          index === self.findIndex((d) => d.stock === data.stock && d.timestamp === data.timestamp)
+        );
+
+        this.setState({
+          data: uniqueData,
+          showGraph: true,
         });
-        x++;
-        if(x>1000){
-          clearInterval(interval);
-        }
-      
-      },100);
-    })      
-    
+      });
+    }, 100);
+
+    // Clear the interval when the component is unmounted
+    this.setState({
+      data: [],
+      showGraph: true,
+    });
   }
 
   /**
