@@ -18,9 +18,9 @@
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
-# from itertools import izip
-from random import normalvariate, random
-from datetime import timedelta, datetime
+from itertools import izip
+from random    import normalvariate, random
+from datetime  import timedelta, datetime
 
 import csv
 import dateutil.parser
@@ -31,9 +31,8 @@ import json
 import re
 import threading
 
-# from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-import http.server
-from socketserver import ThreadingMixIn
+from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
+from SocketServer   import ThreadingMixIn
 
 ################################################################################
 #
@@ -41,15 +40,15 @@ from socketserver import ThreadingMixIn
 
 # Sim params
 
-REALTIME = True
-SIM_LENGTH = timedelta(days=365 * 5)
-MARKET_OPEN = datetime.today().replace(hour=0, minute=30, second=0)
+REALTIME    = False
+SIM_LENGTH  = timedelta(days = 365 * 5)
+MARKET_OPEN = datetime.today().replace(hour = 0, minute = 30, second = 0)
 
 # Market parms
 #       min  / max  / std
-SPD = (2.0, 6.0, 0.1)
-PX = (60.0, 150.0, 1)
-FREQ = (12, 36, 50)
+SPD  = (2.0,   6.0,   0.1)
+PX   = (60.0,  150.0, 0.2)
+FREQ = (12,    36,   50)
 
 # Trades
 
@@ -67,15 +66,13 @@ def bwalk(min, max, std):
         max += normalvariate(0, std)
         yield abs((max % (rng * 2)) - rng) + min
 
-
-def market(t0=MARKET_OPEN):
+def market(t0 = MARKET_OPEN):
     """ Generates a random series of market conditions,
         (time, price, spread).
     """
-    for hours, px, spd in zip(bwalk(*FREQ), bwalk(*PX), bwalk(*SPD)):
+    for hours, px, spd in izip(bwalk(*FREQ), bwalk(*PX), bwalk(*SPD)):
         yield t0, px, spd
-        t0 += timedelta(hours=abs(hours))
-
+        t0 += timedelta(hours = abs(hours))
 
 def orders(hist):
     """ Generates a random set of limit orders (time, side, price, size) from
@@ -83,9 +80,9 @@ def orders(hist):
     """
     for t, px, spd in hist:
         stock = 'ABC' if random() > 0.5 else 'DEF'
-        side, d = ('sell', 2) if random() > 0.5 else ('buy', -2)
+        side, d  = ('sell', 2) if random() > 0.5 else ('buy', -2)
         order = round(normalvariate(px + (spd / d), spd / OVERLAP), 2)
-        size = int(abs(normalvariate(0, 100)))
+        size  = int(abs(normalvariate(0, 100)))
         yield t, stock, side, order, size
 
 
@@ -93,15 +90,14 @@ def orders(hist):
 #
 # Order Book
 
-def add_book(book, order, size, _age=10):
+def add_book(book, order, size, _age = 10):
     """ Add a new order and size to a book, and age the rest of the book. """
     yield order, size, _age
     for o, s, age in book:
         if age > 0:
             yield o, s, age - 1
 
-
-def clear_order(order, size, book, op=operator.ge, _notional=0):
+def clear_order(order, size, book, op = operator.ge, _notional = 0):
     """ Try to clear a sized order against a book, returning a tuple of
         (notional, new_book) if successful, and None if not.  _notional is a
         recursive accumulator and should not be provided by the caller.
@@ -115,8 +111,7 @@ def clear_order(order, size, book, op=operator.ge, _notional=0):
         elif len(tail) > 0:
             return clear_order(order, -sdiff, tail, op, _notional)
 
-
-def clear_book(buy=None, sell=None):
+def clear_book(buy = None, sell = None):
     """ Clears all crossed orders from a buy and sell book, returning the new
         books uncrossed.
     """
@@ -125,7 +120,7 @@ def clear_book(buy=None, sell=None):
         new_book = clear_order(order, size, sell)
         if new_book:
             sell = new_book[1]
-            buy = buy[1:]
+            buy  = buy[1:]
         else:
             break
     return buy, sell
@@ -139,7 +134,7 @@ def order_book(orders, book, stock_name):
     for t, stock, side, order, size in orders:
         if stock_name == stock:
             new = add_book(book.get(side, []), order, size)
-            book[side] = sorted(new, reverse=side == 'buy', key=lambda x: x[0])
+            book[side] = sorted(new, reverse = side == 'buy', key = lambda x: x[0])
         bids, asks = clear_book(**book)
         yield t, bids, asks
 
@@ -160,7 +155,7 @@ def generate_csv():
 
 def read_csv():
     """ Read a CSV or order history into a list. """
-    with open('test.csv', 'rt') as f:
+    with open('test.csv', 'rb') as f:
         for time, stock, side, order, size in csv.reader(f):
             yield dateutil.parser.parse(time), stock, side, float(order), int(size)
 
@@ -169,7 +164,7 @@ def read_csv():
 #
 # Server
 
-class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """ Boilerplate class for a multithreaded HTTP Server, with working
         shutdown.
     """
@@ -178,8 +173,7 @@ class ThreadedHTTPServer(ThreadingMixIn, http.server.HTTPServer):
     def shutdown(self):
         """ Override MRO to shutdown properly. """
         self.socket.close()
-        http.server.HTTPServer.shutdown(self)
-
+        HTTPServer.shutdown(self)
 
 def route(path):
     """ Decorator for a simple bottle-like web framework.  Routes path to the
@@ -205,7 +199,7 @@ def read_params(path):
 
 def get(req_handler, routes):
     """ Map a request to the appropriate route of a routes instance. """
-    for name, handler in routes.__class__.__dict__.items():
+    for name, handler in routes.__class__.__dict__.iteritems():
         if hasattr(handler, "__route__"):
             if None != re.search(handler.__route__, req_handler.path):
                 req_handler.send_response(200)
@@ -214,16 +208,14 @@ def get(req_handler, routes):
                 req_handler.end_headers()
                 params = read_params(req_handler.path)
                 data = json.dumps(handler(routes, params)) + '\n'
-                req_handler.wfile.write(bytes(data, encoding='utf-8'))
+                req_handler.wfile.write(data)
                 return
 
-
-def run(routes, host='0.0.0.0', port=8080):
+def run(routes, host = '0.0.0.0', port = 8080):
     """ Runs a class as a server whose methods have been decorated with
         @route.
     """
-
-    class RequestHandler(http.server.BaseHTTPRequestHandler):
+    class RequestHandler(BaseHTTPRequestHandler):
         def log_message(self, *args, **kwargs):
             pass
 
@@ -231,7 +223,7 @@ def run(routes, host='0.0.0.0', port=8080):
             get(self, routes)
 
     server = ThreadedHTTPServer((host, port), RequestHandler)
-    thread = threading.Thread(target=server.serve_forever)
+    thread = threading.Thread(target = server.serve_forever)
     thread.daemon = True
     thread.start()
     print('HTTP server started on port 8080')
@@ -248,7 +240,7 @@ def run(routes, host='0.0.0.0', port=8080):
 # App
 
 ops = {
-    'buy': operator.le,
+    'buy':  operator.le,
     'sell': operator.ge,
 }
 
@@ -257,12 +249,12 @@ class App(object):
     """ The trading game server application. """
 
     def __init__(self):
-        self._book_1 = dict()
-        self._book_2 = dict()
-        self._data_1 = order_book(read_csv(), self._book_1, 'ABC')
-        self._data_2 = order_book(read_csv(), self._book_2, 'DEF')
+        self._book_1    = dict()
+        self._book_2    = dict()
+        self._data_1    = order_book(read_csv(), self._book_1, 'ABC')
+        self._data_2    = order_book(read_csv(), self._book_2, 'DEF')
         self._rt_start = datetime.now()
-        self._sim_start, _, _ = next(self._data_1)
+        self._sim_start, _, _  = self._data_1.next()
         self.read_10_first_lines()
 
     @property
@@ -284,23 +276,17 @@ class App(object):
                 yield t, bids, asks
 
     def read_10_first_lines(self):
-        for _ in iter(range(10)):
-            next(self._data_1)
-            next(self._data_2)
+        for _ in xrange(10):
+            self._data_1.next()
+            self._data_2.next()
 
     @route('/query')
     def handle_query(self, x):
         """ Takes no arguments, and yields the current top of the book;  the
-            best bid and ask and their sizes
+            best bid and ask and their sizes.
         """
-        try:
-            t1, bids1, asks1 = next(self._current_book_1)
-            t2, bids2, asks2 = next(self._current_book_2)
-        except Exception as e:
-            print("error getting stocks...reinitalizing app")
-            self.__init__()
-            t1, bids1, asks1 = next(self._current_book_1)
-            t2, bids2, asks2 = next(self._current_book_2)
+        t1, bids1, asks1 = self._current_book_1.next()
+        t2, bids2, asks2 = self._current_book_2.next()
         t = t1 if t1 > t2 else t2
         print('Query received @ t%s' % t)
         return [{
@@ -316,19 +302,19 @@ class App(object):
                 'size': asks1[0][1]
             }
         },
-            {
-                'id': x and x.get('id', None),
-                'stock': 'DEF',
-                'timestamp': str(t),
-                'top_bid': bids2 and {
-                    'price': bids2[0][0],
-                    'size': bids2[0][1]
-                },
-                'top_ask': asks2 and {
-                    'price': asks2[0][0],
-                    'size': asks2[0][1]
-                }
-            }]
+        {
+            'id': x and x.get('id', None),
+            'stock': 'DEF',
+            'timestamp': str(t),
+            'top_bid': bids2 and {
+                'price': bids2[0][0],
+                'size': bids2[0][1]
+            },
+            'top_ask': asks2 and {
+                'price': asks2[0][0],
+                'size': asks2[0][1]
+            }
+        }]
 
 
 ################################################################################
